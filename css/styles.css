@@ -1,0 +1,471 @@
+/* Reset + design tokens */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f4f5fb;
+  --bg-gradient: radial-gradient(1200px 600px at 10% -10%, #e0e7ff 0%, transparent 60%),
+                 radial-gradient(900px 500px at 100% 0%, #fce7f3 0%, transparent 55%),
+                 linear-gradient(180deg, #f4f5fb 0%, #eef1f8 100%);
+  --surface: #ffffff;
+  --surface-muted: #fafbff;
+  --border: #e4e7ef;
+  --border-strong: #d3d8e3;
+  --text: #14172b;
+  --text-muted: #6b7280;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-soft: rgba(79, 70, 229, 0.1);
+  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --danger: #dc2626;
+  --success: #10b981;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 1px 2px rgba(20, 23, 43, 0.04);
+  --shadow: 0 4px 12px rgba(20, 23, 43, 0.06), 0 1px 2px rgba(20, 23, 43, 0.04);
+  --shadow-lg: 0 12px 32px rgba(20, 23, 43, 0.1), 0 2px 6px rgba(20, 23, 43, 0.05);
+  --shadow-primary: 0 6px 20px rgba(79, 70, 229, 0.35);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  background: var(--bg);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text);
+  line-height: 1.55;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Header */
+header {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 1.75rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  margin-top: 0.25rem;
+}
+
+.back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+}
+
+.back-link:hover {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* Layout */
+main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+}
+
+section { margin-bottom: 2rem; }
+
+h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* Surfaces */
+.form-section, .deck-card, .card-item, #study-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.form-section {
+  background: linear-gradient(180deg, #ffffff 0%, var(--surface-muted) 100%);
+}
+
+/* Forms */
+input, textarea {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  margin-bottom: 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input::placeholder, textarea::placeholder { color: #a0a6b3; }
+
+input:hover, textarea:hover { border-color: var(--border-strong); }
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+/* Buttons */
+button {
+  padding: 0.625rem 1.125rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary-gradient);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+
+button:hover {
+  filter: brightness(1.05);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-1px);
+}
+
+button:active { transform: translateY(0); filter: brightness(0.97); }
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-sm);
+  filter: none;
+}
+
+/* Secondary / ghost buttons */
+.delete-btn, .delete-card-btn {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.delete-btn:hover, .delete-card-btn:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.rename-btn, .edit-card-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.rename-btn:hover, .edit-card-btn:hover {
+  background: var(--text);
+  color: white;
+  border-color: var(--text);
+}
+
+/* Deck cards */
+.deck-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.deck-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--primary-gradient);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.deck-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
+}
+
+.deck-card:hover::before { opacity: 1; }
+
+.deck-card h3 {
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+
+.deck-card h3 a {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--transition);
+}
+
+.deck-card h3 a:hover { color: var(--primary); }
+
+.deck-card p {
+  color: var(--text-muted);
+  margin: 0.5rem 0;
+  font-size: 0.9375rem;
+}
+
+.deck-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.deck-meta span {
+  margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.625rem;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 3rem 1rem;
+  font-style: italic;
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  padding: 0;
+}
+
+.tab {
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.875rem 1.125rem;
+  font-weight: 500;
+  box-shadow: none;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.tab:hover {
+  background: rgba(79, 70, 229, 0.04);
+  color: var(--text);
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-content { display: none; animation: fadeIn 0.25s ease-out; }
+.tab-content.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card list items */
+.card-item {
+  border-left: 3px solid transparent;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.card-item:hover {
+  border-left-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-item .card-q {
+  margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.card-item .card-a {
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  padding-left: 0;
+  font-size: 0.9375rem;
+}
+
+.card-item .card-q strong,
+.card-item .card-a strong {
+  color: var(--primary);
+  font-weight: 600;
+  margin-right: 0.35rem;
+}
+
+.card-item .card-actions { display: flex; gap: 0.5rem; }
+
+#generate-status {
+  margin-top: 0.875rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  padding: 0.625rem 0.875rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+}
+
+#generate-status:empty { display: none; }
+
+/* Study mode */
+#study-card {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+#study-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.study-progress {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.study-side-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.study-text {
+  font-size: 1.625rem;
+  line-height: 1.4;
+  margin-bottom: 2.5rem;
+  min-height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.study-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.study-actions button {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+}
+
+#flip-btn {
+  background: white;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+#flip-btn:hover {
+  background: var(--primary-soft);
+  color: var(--primary-hover);
+  box-shadow: var(--shadow);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  header { padding: 1.25rem 1.25rem; }
+  header h1 { font-size: 1.5rem; }
+  main { padding: 1.5rem 1.25rem 3rem; }
+  .form-section, .deck-card, .card-item { padding: 1.25rem; }
+  #study-card { padding: 2.5rem 1.5rem; }
+  .study-text { font-size: 1.25rem; }
+  .tab { padding: 0.75rem 0.75rem; font-size: 0.8125rem; }
+}

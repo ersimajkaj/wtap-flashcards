@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashcards</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Flashcards</h1>
+    <p class="subtitle">Create decks and study with AI-generated cards.</p>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>New Deck</h2>
+      <form id="new-deck-form">
+        <input type="text" id="deck-name" placeholder="Deck name (e.g. Web Development)" required maxlength="100">
+        <input type="text" id="deck-description" placeholder="Description (optional)" maxlength="200">
+        <button type="submit">Create Deck</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Your Decks</h2>
+      <div id="deck-list"></div>
+    </section>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/decks.js"></script>
+  <script src="js/cards.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

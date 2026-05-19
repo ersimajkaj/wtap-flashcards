@@ -4,42 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <header>
-    <a href="index.html" class="back-link">← All Decks</a>
-    <h1 id="deck-title">Loading...</h1>
-    <p id="deck-description" class="subtitle"></p>
+    <div class="header-inner">
+      <div class="brand">
+        <a href="index.html" class="logo-link" aria-label="Back to all decks">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="6" width="13" height="14" rx="2" transform="rotate(-8 9.5 13)"/>
+              <rect x="8" y="4" width="13" height="14" rx="2"/>
+            </svg>
+          </span>
+        </a>
+        <div>
+          <a href="index.html" class="back-link">All decks</a>
+          <h1 id="deck-title">Loading…</h1>
+          <p id="deck-description" class="subtitle"></p>
+        </div>
+      </div>
+      <button id="theme-toggle" class="theme-btn" aria-label="Toggle theme"></button>
+    </div>
   </header>
 
   <main>
     <nav class="tabs">
       <button class="tab active" data-tab="cards">Cards</button>
-      <button class="tab" data-tab="generate">AI Generate</button>
+      <button class="tab" data-tab="generate">AI generate</button>
       <button class="tab" data-tab="study">Study</button>
     </nav>
 
     <section id="tab-cards" class="tab-content active">
       <div class="form-section">
-        <h2>Add Card</h2>
+        <h2>Add a card</h2>
         <form id="new-card-form">
           <textarea id="card-question" placeholder="Question" required maxlength="500"></textarea>
           <textarea id="card-answer" placeholder="Answer" required maxlength="1000"></textarea>
-          <button type="submit">Add Card</button>
+          <button type="submit" class="btn-primary">Add card</button>
         </form>
       </div>
 
-      <h2>Cards</h2>
+      <div class="section-head">
+        <h2>Cards</h2>
+        <span id="card-count" class="muted"></span>
+      </div>
       <div id="card-list"></div>
     </section>
 
     <section id="tab-generate" class="tab-content">
       <div class="form-section">
-        <h2>Generate Cards from Notes</h2>
-        <p class="hint">Paste any notes, article, or chapter. AI will create flashcards from it.</p>
-        <textarea id="ai-notes" placeholder="Paste your notes here..." rows="10" maxlength="20000"></textarea>
-        <button id="generate-btn">Generate Cards</button>
+        <h2>Generate from notes</h2>
+        <p class="hint">Paste a chapter, lecture notes, or an article. The AI pulls out the key ideas and writes flashcards.</p>
+        <textarea id="ai-notes" placeholder="Paste your notes here…" rows="10" maxlength="20000"></textarea>
+        <button id="generate-btn" class="btn-primary">Generate cards</button>
         <div id="generate-status"></div>
       </div>
     </section>
@@ -53,6 +74,7 @@
   <script src="js/decks.js"></script>
   <script src="js/cards.js"></script>
   <script src="js/ai.js"></script>
+  <script src="js/ui.js"></script>
   <script src="js/study.js"></script>
   <script src="js/app.js"></script>
 </body>

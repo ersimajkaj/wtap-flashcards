@@ -8,3 +8,17 @@
 
 # Logs
 *.log
+
+# Environment
+.env
+*.env.local
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# EF Core (keep migrations, ignore designer cache)
+**/Migrations/*.Designer.cs.bak

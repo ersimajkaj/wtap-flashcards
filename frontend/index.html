@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in – Flashcards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="auth-body">
+  <main class="auth-shell">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="6" width="13" height="14" rx="2" transform="rotate(-8 9.5 13)"/>
+            <rect x="8" y="4" width="13" height="14" rx="2"/>
+          </svg>
+        </span>
+        <h1>Welcome back</h1>
+        <p class="subtitle">Log in to your decks.</p>
+      </div>
+
+      <form id="auth-form" autocomplete="on">
+        <input type="email" id="email" placeholder="Email" required autocomplete="email">
+        <input type="password" id="password" placeholder="Password" required autocomplete="current-password" minlength="8">
+        <button type="submit" class="btn-primary">Log in</button>
+        <div id="auth-status" class="auth-status"></div>
+      </form>
+
+      <p class="auth-footer">No account? <a href="register.html">Sign up</a></p>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      if (session.isAuthed()) { window.location.href = 'decks.html'; return; }
+      const form = document.getElementById('auth-form');
+      const status = document.getElementById('auth-status');
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        status.textContent = '';
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        try {
+          const res = await authApi.login(email, password);
+          session.set(res.token, { id: res.userId, email: res.email });
+          window.location.href = 'decks.html';
+        } catch (err) {
+          status.textContent = err.message;
+          btn.disabled = false;
+        }
+      };
+    });
+  </script>
+</body>
+</html>

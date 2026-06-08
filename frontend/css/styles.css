@@ -81,9 +81,7 @@
 html, body { height: 100%; }
 
 body {
-  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-  font-feature-settings: 'ss01', 'ss02';
-  font-variation-settings: 'opsz' 14;
+  font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
   background-image: var(--bg-tint);
   background-attachment: fixed;
@@ -151,13 +149,12 @@ header {
 .logo-link:hover .logo { transform: translateY(-1px); transition: transform var(--transition); }
 
 header h1 {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 2rem;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.1;
   color: var(--text);
-  font-variation-settings: 'opsz' 80;
 }
 
 /* Small colored dot before deck title — matches the deck's chosen color */
@@ -232,13 +229,12 @@ main {
 section { margin-bottom: 2.5rem; }
 
 h2 {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 1.25rem;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 1rem;
   letter-spacing: -0.015em;
   color: var(--text);
-  font-variation-settings: 'opsz' 40;
 }
 
 .section-head {
@@ -493,13 +489,12 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .deck-body { flex: 1; min-width: 0; }
 
 .deck-body h3 {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.015em;
   margin-bottom: 0.25rem;
   color: var(--text);
-  font-variation-settings: 'opsz' 40;
 }
 
 .deck-body p {
@@ -739,14 +734,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .flip-back .flip-label { color: var(--primary); }
 
 .flip-text {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 1.625rem;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.4;
   color: var(--text);
   letter-spacing: -0.01em;
   max-width: 500px;
-  font-variation-settings: 'opsz' 80;
 }
 
 .study-actions {
@@ -845,4 +839,200 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .tab { padding: 0.75rem 0.625rem; font-size: 0.875rem; }
   #toast-container { left: 1rem; right: 1rem; bottom: 1rem; }
   .toast { max-width: none; }
+}
+
+/* ---------- Auth screens (login / register) ---------- */
+
+.auth-body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.auth-shell {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 18px 48px -28px rgba(0, 0, 0, 0.25);
+}
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.auth-brand .logo {
+  width: 3rem; height: 3rem;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border-radius: 0.875rem;
+  margin-bottom: 0.875rem;
+}
+
+.auth-brand .logo svg { width: 1.5rem; height: 1.5rem; }
+
+.auth-brand h1 {
+  font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.625rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Full-width auth buttons: center the label */
+.auth-card .btn-primary { justify-content: center; }
+
+.auth-card input {
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.625rem;
+  font-size: 1rem;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.auth-card input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.auth-status {
+  min-height: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--danger, #c0392b);
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.auth-footer a {
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.auth-footer a:hover { text-decoration: underline; }
+
+/* ---------- Header user box ---------- */
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.user-email {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 12rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Logout: upright (not italic), in the mode's accent color */
+.logout-btn {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-style: normal;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary);
+  padding: 0.375rem 0.625rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logout-btn:hover { background: var(--primary-soft); color: var(--primary-hover); }
+
+/* ---------- SM-2 rating buttons ---------- */
+
+.study-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.study-flip-btn {
+  align-self: center;
+  min-width: 12rem;
+}
+
+.rating-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.625rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.study-actions[data-show-ratings="true"] .rating-buttons {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.study-actions[data-show-ratings="true"] .study-flip-btn {
+  display: none;
+}
+
+.rating-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.875rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 100ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.rating-btn span {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.rating-btn:hover { transform: translateY(-1px); }
+
+.rating-again { border-color: #e85a5a; color: #c0392b; }
+.rating-again:hover { background: color-mix(in srgb, #e85a5a 8%, var(--surface)); }
+.rating-hard  { border-color: #e67e22; color: #b9651c; }
+.rating-hard:hover { background: color-mix(in srgb, #e67e22 8%, var(--surface)); }
+.rating-good  { border-color: #27ae60; color: #1e8a4c; }
+.rating-good:hover { background: color-mix(in srgb, #27ae60 8%, var(--surface)); }
+.rating-easy  { border-color: #3498db; color: #2474a8; }
+.rating-easy:hover { background: color-mix(in srgb, #3498db 8%, var(--surface)); }
+
+@media (max-width: 640px) {
+  .rating-buttons { grid-template-columns: repeat(2, 1fr); }
+  .auth-card { padding: 1.75rem 1.25rem; }
 }

@@ -1,33 +1,65 @@
-// Page initialization + UI rendering for both index.html and deck.html
+// Page initialization + UI rendering for both decks.html and deck.html.
+// All data access is async via api.js.
 
 let currentDeckId = null;
 let selectedColor = DECK_COLORS[0];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
-  if (document.getElementById('new-deck-form')) initIndexPage();
-  if (document.getElementById('deck-title')) initDeckPage();
+  if (!requireAuth()) return;
+  setupHeader();
+  if (document.getElementById('new-deck-form')) await initIndexPage();
+  if (document.getElementById('deck-title')) await initDeckPage();
 });
+
+// Header: shows current user email + logout button
+function setupHeader() {
+  const headerInner = document.querySelector('.header-inner');
+  if (!headerInner) return;
+  const user = session.getUser();
+  if (!user) return;
+
+  const userBox = document.createElement('div');
+  userBox.className = 'user-box';
+  userBox.innerHTML = `
+    <span class="user-email">${escapeHtml(user.email)}</span>
+    <button id="logout-btn" class="logout-btn">Logout</button>
+  `;
+  headerInner.appendChild(userBox);
+
+  // Move the theme toggle into the user group so it sits inline with email + logout
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) userBox.appendChild(themeBtn);
+
+  document.getElementById('logout-btn').onclick = () => {
+    session.clear();
+    window.location.href = 'index.html';
+  };
+}
 
 // ---------- INDEX PAGE ----------
 
-function initIndexPage() {
+async function initIndexPage() {
   const form = document.getElementById('new-deck-form');
   buildColorPicker();
 
-  form.onsubmit = (e) => {
+  form.onsubmit = async (e) => {
     e.preventDefault();
     const name = document.getElementById('deck-name').value;
     const description = document.getElementById('deck-description').value;
     if (!name.trim()) return;
-    const deck = createDeck(name, description, selectedColor);
-    form.reset();
-    selectedColor = DECK_COLORS[0];
-    buildColorPicker();
-    renderDeckList();
-    toast(`Deck "${deck.name}" created`, 'success');
+    try {
+      const deck = await createDeck(name, description, selectedColor);
+      form.reset();
+      selectedColor = DECK_COLORS[0];
+      buildColorPicker();
+      await renderDeckList();
+      toast(`Deck "${deck.name}" created`, 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    }
   };
-  renderDeckList();
+  await renderDeckList();
 }
 
 function buildColorPicker() {
@@ -44,9 +76,15 @@ function buildColorPicker() {
   });
 }
 
-function renderDeckList() {
+async function renderDeckList() {
   const container = document.getElementById('deck-list');
-  const decks = loadDecks();
+  let decks;
+  try {
+    decks = await loadDecks();
+  } catch (err) {
+    container.innerHTML = `<div class="empty"><p>${escapeHtml(err.message)}</p></div>`;
+    return;
+  }
   const countEl = document.getElementById('deck-count');
   if (countEl) countEl.textContent = decks.length ? `${decks.length} total` : '';
 
@@ -59,11 +97,7 @@ function renderDeckList() {
     return;
   }
 
-  // Newest decks first
-  const sorted = [...decks].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-  container.innerHTML = sorted.map(deck => {
-    const cardCount = getCardsForDeck(deck.id).length;
+  container.innerHTML = decks.map(deck => {
     const color = deck.color || DECK_COLORS[0];
     return `
       <article class="deck-card color-${color}">
@@ -72,7 +106,7 @@ function renderDeckList() {
           <div class="deck-body">
             <h3>${escapeHtml(deck.name)}</h3>
             ${deck.description ? `<p>${escapeHtml(deck.description)}</p>` : ''}
-            <div class="deck-count">${cardCount} card${cardCount === 1 ? '' : 's'}</div>
+            <div class="deck-count">${deck.cardCount} card${deck.cardCount === 1 ? '' : 's'}</div>
           </div>
         </a>
         <div class="deck-actions">
@@ -84,47 +118,56 @@ function renderDeckList() {
   }).join('');
 
   container.querySelectorAll('.rename-btn').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.dataset.id;
-      const deck = getDeck(id);
+      const deck = await getDeck(id);
+      if (!deck) return;
       const newName = prompt('New name:', deck.name);
       if (newName && newName.trim()) {
-        updateDeck(id, { name: newName });
-        renderDeckList();
-        toast('Deck renamed', 'success');
+        try {
+          await updateDeck(id, { name: newName });
+          await renderDeckList();
+          toast('Deck renamed', 'success');
+        } catch (err) { toast(err.message, 'error'); }
       }
     };
   });
 
   container.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.dataset.id;
-      const deck = getDeck(id);
-      const cardsToRestore = getCardsForDeck(id);
-      deleteDeck(id);
-      renderDeckList();
-      toast(`Deleted "${deck.name}"`, 'info', {
-        duration: 6000,
-        action: {
-          label: 'Undo',
-          onClick: () => {
-            restoreDeck(deck, cardsToRestore);
-            renderDeckList();
-            toast('Restored', 'success');
+      const deck = await getDeck(id);
+      if (!deck) return;
+      // Grab the cards BEFORE deleting so undo can recreate them
+      const cardsToRestore = await getCardsForDeck(id);
+      try {
+        await deleteDeck(id);
+        await renderDeckList();
+        toast(`Deleted "${deck.name}"`, 'info', {
+          duration: 6000,
+          action: {
+            label: 'Undo',
+            onClick: async () => {
+              try {
+                await restoreDeck(deck, cardsToRestore);
+                await renderDeckList();
+                toast('Restored', 'success');
+              } catch (err) { toast(err.message, 'error'); }
+            }
           }
-        }
-      });
+        });
+      } catch (err) { toast(err.message, 'error'); }
     };
   });
 }
 
 // ---------- DECK PAGE ----------
 
-function initDeckPage() {
+async function initDeckPage() {
   const params = new URLSearchParams(window.location.search);
   currentDeckId = params.get('id');
 
-  const deck = currentDeckId ? getDeck(currentDeckId) : null;
+  const deck = currentDeckId ? await getDeck(currentDeckId) : null;
   if (!deck) {
     document.getElementById('deck-title').textContent = 'Deck not found';
     document.getElementById('deck-description').textContent = 'Go back and pick a deck.';
@@ -139,7 +182,7 @@ function initDeckPage() {
   setupTabs();
   setupCardForm();
   setupGenerateButton();
-  renderCardList();
+  await renderCardList();
 }
 
 function setupTabs() {
@@ -149,7 +192,6 @@ function setupTabs() {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-      // Lazy-init study mode when its tab opens
       if (tab.dataset.tab === 'study') {
         startStudy(currentDeckId);
       } else {
@@ -161,15 +203,17 @@ function setupTabs() {
 
 function setupCardForm() {
   const form = document.getElementById('new-card-form');
-  form.onsubmit = (e) => {
+  form.onsubmit = async (e) => {
     e.preventDefault();
     const question = document.getElementById('card-question').value;
     const answer = document.getElementById('card-answer').value;
     if (!question.trim() || !answer.trim()) return;
-    createCard(currentDeckId, question, answer);
-    form.reset();
-    renderCardList();
-    toast('Card added', 'success');
+    try {
+      await createCard(currentDeckId, question, answer);
+      form.reset();
+      await renderCardList();
+      toast('Card added', 'success');
+    } catch (err) { toast(err.message, 'error'); }
   };
 }
 
@@ -190,11 +234,10 @@ function setupGenerateButton() {
     status.innerHTML = `<span class="spinner"></span><span>Reading your notes and writing cards…</span>`;
 
     try {
-      const cards = await generateCardsFromNotes(notes);
-      cards.forEach(c => createCard(currentDeckId, c.question, c.answer));
+      const cards = await generateCardsFromNotes(currentDeckId, notes);
       status.textContent = `Added ${cards.length} new card${cards.length === 1 ? '' : 's'}.`;
       document.getElementById('ai-notes').value = '';
-      renderCardList();
+      await renderCardList();
       toast(`Generated ${cards.length} cards`, 'success');
     } catch (err) {
       status.textContent = err.message;
@@ -205,11 +248,17 @@ function setupGenerateButton() {
   };
 }
 
-function renderCardList() {
+async function renderCardList() {
   const container = document.getElementById('card-list');
   if (!container) return;
 
-  const cards = getCardsForDeck(currentDeckId);
+  let cards;
+  try {
+    cards = await getCardsForDeck(currentDeckId);
+  } catch (err) {
+    container.innerHTML = `<div class="empty"><p>${escapeHtml(err.message)}</p></div>`;
+    return;
+  }
   const countEl = document.getElementById('card-count');
   if (countEl) countEl.textContent = cards.length ? `${cards.length} total` : '';
 
@@ -235,33 +284,39 @@ function renderCardList() {
     </article>
   `).join('');
 
+  // Keep card data accessible by id so edit/delete handlers don't refetch
+  const cardsById = new Map(cards.map(c => [c.id, c]));
+
   container.querySelectorAll('.edit-card-btn').forEach(btn => {
-    btn.onclick = () => enterCardEditMode(btn.dataset.id);
+    btn.onclick = () => enterCardEditMode(btn.dataset.id, cardsById.get(btn.dataset.id));
   });
 
   container.querySelectorAll('.delete-card-btn').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.dataset.id;
-      const card = getCard(id);
-      deleteCard(id);
-      renderCardList();
-      toast('Card deleted', 'info', {
-        duration: 5000,
-        action: {
-          label: 'Undo',
-          onClick: () => {
-            createCard(card.deckId, card.question, card.answer);
-            renderCardList();
+      const card = cardsById.get(id);
+      try {
+        await deleteCard(id);
+        await renderCardList();
+        toast('Card deleted', 'info', {
+          duration: 5000,
+          action: {
+            label: 'Undo',
+            onClick: async () => {
+              try {
+                await createCard(card.deckId, card.question, card.answer);
+                await renderCardList();
+              } catch (err) { toast(err.message, 'error'); }
+            }
           }
-        }
-      });
+        });
+      } catch (err) { toast(err.message, 'error'); }
     };
   });
 }
 
-// Inline editing — replaces the card item with a form in place
-function enterCardEditMode(cardId) {
-  const card = getCard(cardId);
+// Inline editing — swaps the card item for a form in place
+function enterCardEditMode(cardId, card) {
   const item = document.querySelector(`.card-item[data-id="${cardId}"]`);
   if (!item || !card) return;
 
@@ -269,7 +324,7 @@ function enterCardEditMode(cardId) {
   item.innerHTML = `
     <div class="card-body">
       <textarea class="edit-q" maxlength="500">${escapeHtml(card.question)}</textarea>
-      <textarea class="edit-a" maxlength="1000">${escapeHtml(card.answer)}</textarea>
+      <textarea class="edit-a" maxlength="2000">${escapeHtml(card.answer)}</textarea>
     </div>
     <div class="card-actions edit-actions">
       <button class="btn-outline cancel-edit">Cancel</button>
@@ -277,19 +332,20 @@ function enterCardEditMode(cardId) {
     </div>
   `;
 
-  const qEl = item.querySelector('.edit-q');
-  qEl.focus();
+  item.querySelector('.edit-q').focus();
 
   item.querySelector('.cancel-edit').onclick = () => renderCardList();
-  item.querySelector('.save-edit').onclick = () => {
+  item.querySelector('.save-edit').onclick = async () => {
     const newQ = item.querySelector('.edit-q').value.trim();
     const newA = item.querySelector('.edit-a').value.trim();
     if (!newQ || !newA) {
       toast('Both fields are required', 'warning');
       return;
     }
-    updateCard(cardId, { question: newQ, answer: newA });
-    renderCardList();
-    toast('Card updated', 'success');
+    try {
+      await updateCard(cardId, { question: newQ, answer: newA });
+      await renderCardList();
+      toast('Card updated', 'success');
+    } catch (err) { toast(err.message, 'error'); }
   };
 }

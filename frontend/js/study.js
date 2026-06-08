@@ -1,23 +1,26 @@
-// Study mode: 3D flip card with keyboard shortcuts
+// Study mode driven by the server's SM-2 scheduler.
+// User flips the card, picks Again/Hard/Good/Easy, server updates the schedule,
+// next due card is loaded.
 
 const studyState = {
-  cards: [],
-  currentIndex: 0,
+  queue: [],
+  current: null,
   flipped: false,
-  deckId: null
+  deckId: null,
+  loading: false
 };
 
 let keyHandler = null;
 
-function startStudy(deckId) {
+async function startStudy(deckId) {
   studyState.deckId = deckId;
-  studyState.cards = getCardsForDeck(deckId);
-  // Shuffle so repeated study sessions vary
-  studyState.cards.sort(() => Math.random() - 0.5);
-  studyState.currentIndex = 0;
   studyState.flipped = false;
-  renderStudyCard();
+  studyState.current = null;
+  studyState.queue = [];
+  renderStudyLoading();
   attachKeyboardShortcuts();
+  await fetchNextBatch();
+  advanceToNext();
 }
 
 function stopStudy() {
@@ -27,90 +30,96 @@ function stopStudy() {
   }
 }
 
+async function fetchNextBatch() {
+  if (studyState.loading) return;
+  studyState.loading = true;
+  try {
+    studyState.queue = await studyApi.due(studyState.deckId, 20);
+  } catch (err) {
+    toast(err.message, 'error');
+    studyState.queue = [];
+  } finally {
+    studyState.loading = false;
+  }
+}
+
+function advanceToNext() {
+  studyState.flipped = false;
+  studyState.current = studyState.queue.shift() || null;
+  renderStudyCard();
+}
+
 function attachKeyboardShortcuts() {
   if (keyHandler) document.removeEventListener('keydown', keyHandler);
   keyHandler = (e) => {
     const studyTab = document.getElementById('tab-study');
     if (!studyTab || !studyTab.classList.contains('active')) return;
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (!studyState.current) return;
 
     if (e.code === 'Space') {
       e.preventDefault();
       flipCard();
-    } else if (e.code === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
-      e.preventDefault();
-      nextCard();
-    } else if (e.code === 'ArrowLeft' || e.key === 'p' || e.key === 'P') {
-      e.preventDefault();
-      prevCard();
+    } else if (studyState.flipped) {
+      // Number-key shortcuts mirror the four rating buttons
+      if (e.key === '1') { e.preventDefault(); rate(0); }
+      else if (e.key === '2') { e.preventDefault(); rate(1); }
+      else if (e.key === '3') { e.preventDefault(); rate(2); }
+      else if (e.key === '4') { e.preventDefault(); rate(3); }
     }
   };
   document.addEventListener('keydown', keyHandler);
 }
 
 function flipCard() {
-  if (!studyState.cards.length) return;
+  if (!studyState.current) return;
   studyState.flipped = !studyState.flipped;
   const flipEl = document.querySelector('.flip-card');
   if (flipEl) flipEl.dataset.flipped = studyState.flipped;
+  const actions = document.querySelector('.study-actions');
+  if (actions) actions.dataset.showRatings = studyState.flipped;
 }
 
-function nextCard() {
-  if (!studyState.cards.length) return;
-  // Flip back first, then swap content after transition
-  if (studyState.flipped) {
-    studyState.flipped = false;
-    const flipEl = document.querySelector('.flip-card');
-    if (flipEl) flipEl.dataset.flipped = 'false';
-    setTimeout(() => {
-      studyState.currentIndex = (studyState.currentIndex + 1) % studyState.cards.length;
-      renderStudyCard();
-    }, 350);
-  } else {
-    studyState.currentIndex = (studyState.currentIndex + 1) % studyState.cards.length;
-    renderStudyCard();
+async function rate(rating) {
+  if (!studyState.current) return;
+  const cardId = studyState.current.cardId;
+  try {
+    await studyApi.review(cardId, rating);
+  } catch (err) {
+    toast(err.message, 'error');
+    return;
   }
+  if (studyState.queue.length < 3) {
+    await fetchNextBatch();
+  }
+  advanceToNext();
 }
 
-function prevCard() {
-  if (!studyState.cards.length) return;
-  if (studyState.flipped) {
-    studyState.flipped = false;
-    const flipEl = document.querySelector('.flip-card');
-    if (flipEl) flipEl.dataset.flipped = 'false';
-    setTimeout(() => {
-      studyState.currentIndex = (studyState.currentIndex - 1 + studyState.cards.length) % studyState.cards.length;
-      renderStudyCard();
-    }, 350);
-  } else {
-    studyState.currentIndex = (studyState.currentIndex - 1 + studyState.cards.length) % studyState.cards.length;
-    renderStudyCard();
-  }
+function renderStudyLoading() {
+  const container = document.getElementById('study-card');
+  if (!container) return;
+  container.innerHTML = `<div class="study-empty"><span class="spinner"></span><p>Loading due cards…</p></div>`;
 }
 
 function renderStudyCard() {
   const container = document.getElementById('study-card');
   if (!container) return;
 
-  if (studyState.cards.length === 0) {
+  if (!studyState.current) {
     container.innerHTML = `
       <div class="study-empty">
-        <p>No cards yet. Add some first, or generate a batch with AI.</p>
+        <h3>You're caught up</h3>
+        <p>No cards due right now. Come back later, or add more cards to this deck.</p>
       </div>
     `;
     return;
   }
 
-  const card = studyState.cards[studyState.currentIndex];
-  const progress = ((studyState.currentIndex + 1) / studyState.cards.length) * 100;
-
+  const card = studyState.current;
   container.innerHTML = `
-    <div class="study-progress-bar">
-      <div class="study-progress-fill" style="width: ${progress}%"></div>
-    </div>
     <div class="study-meta">
-      <span>${studyState.currentIndex + 1} of ${studyState.cards.length}</span>
-      <span class="study-hint">Space to flip · → for next</span>
+      <span>${card.repetitions === 0 ? 'New card' : `Seen ${card.repetitions}×`}</span>
+      <span class="study-hint">Space to flip · 1-4 to rate</span>
     </div>
 
     <div class="flip-card" data-flipped="${studyState.flipped}">
@@ -126,18 +135,22 @@ function renderStudyCard() {
       </div>
     </div>
 
-    <div class="study-actions">
-      <button id="prev-btn" class="btn-ghost">← Prev</button>
-      <button id="flip-btn" class="btn-outline">Flip</button>
-      <button id="next-btn" class="btn-primary">Next →</button>
+    <div class="study-actions" data-show-ratings="${studyState.flipped}">
+      <button id="flip-btn" class="btn-outline study-flip-btn">Flip (Space)</button>
+      <div class="rating-buttons">
+        <button class="rating-btn rating-again" data-rating="0">Again<span>1</span></button>
+        <button class="rating-btn rating-hard" data-rating="1">Hard<span>2</span></button>
+        <button class="rating-btn rating-good" data-rating="2">Good<span>3</span></button>
+        <button class="rating-btn rating-easy" data-rating="3">Easy<span>4</span></button>
+      </div>
     </div>
   `;
 
   document.getElementById('flip-btn').onclick = flipCard;
-  document.getElementById('next-btn').onclick = nextCard;
-  document.getElementById('prev-btn').onclick = prevCard;
+  document.querySelectorAll('.rating-btn').forEach(b => {
+    b.onclick = () => rate(parseInt(b.dataset.rating, 10));
+  });
 
-  // Clicking the card itself also flips — feels natural
   document.querySelector('.flip-card').onclick = (e) => {
     if (e.target.closest('button')) return;
     flipCard();
